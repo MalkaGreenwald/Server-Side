@@ -34,7 +34,7 @@ namespace BL
                 {
                     var filePath = HttpContext.Current.Server.MapPath(temp + postedFile.FileName);
                     //postedFile.SaveAs(filePath);
-                    var urlStoragr = InitImages.SendToStorage(filePath);
+                    var urlStoragr = InitImages.SendToStorage(postedFile.FileName,postedFile.InputStream);
                     Groom groom = new Groom();
                     groom.url = urlStoragr;
                     groom.token = getFaceToken(urlStoragr);

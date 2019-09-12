@@ -32,26 +32,26 @@ namespace BL
         "https://event-photos.cognitiveservices.azure.com/face/v1.0/detect";
         public static EventEntities DB = new EventEntities();
 
-        public static string SendToStorage(string filepath)
+        public static string SendToStorage(string fileName, Stream stream)
         {
             Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"C:\My First Project-b781c7f56bda.json");
             // upload the image storage
             //string projectId = "wordproject-249810";
             //char[] fu = filepath.ToCharArray();
-            filepath.Remove(4, 1); //delete one slesh 
-            string objectName = filepath.Split('\\').Last();
+            //filepath.Remove(4, 1); //delete one slesh 
+            //string objectName = filepath.Split('\\').Last();
             string bucketName = "bucketmyexample";
             bool IsException;
 
-            string imageURL = "https://storage.googleapis.com/bucketmyexample/" + objectName;
+            string imageURL = "https://storage.googleapis.com/bucketmyexample/" + fileName;
             //https://console.cloud.google.com/storage/browser/forth
             StorageClient storage = StorageClient.Create();
 
-            using (var f = File.OpenRead(@filepath))
+            //using (var f = File.OpenRead(@filepath))
                 try
                 {
-                    var res = storage.UploadObject(bucketName, objectName, null, f);
-                    Console.WriteLine($"Uploaded {objectName}.");
+                    var res = storage.UploadObject(bucketName, fileName, null, stream);
+                    Console.WriteLine($"Uploaded {fileName}.");
                     //imageURL = res.SelfLink;
                     return imageURL;
 
@@ -117,7 +117,7 @@ namespace BL
                     {
                         var filePath = HttpContext.Current.Server.MapPath(temp + postedFile.FileName);
                         //postedFile.SaveAs(filePath);
-                        uploaded_image = SendToStorage(filePath);
+                        uploaded_image = SendToStorage(postedFile.FileName, postedFile.InputStream);
                         var x = await InitImageDetailsAsync(uploaded_image, postedFile.FileName);
 
                     }
@@ -208,17 +208,36 @@ namespace BL
             }
             return false;
         }
-        
+
         public static bool IsIndoors(List<Concept> res)
         {
-            //Push malki
-            return false;
+            foreach (var concept in res)
+            {
+                if (concept.Name == "indoors")
+                    return true;
+                if (concept.Name == "interior design")
+                    return true;
+            }
+            return true;
         }
+
         public static bool IsOutdoors(List<Concept> res)
         {
-            //Push malki
-            return false;
+            decimal num = Convert.ToDecimal(0.93);
+            bool flag = false;
+            foreach (var concept in res)
+            {
+                if (concept.Name == "indoors")
+                    return false;
+                if (concept.Name == "nature" && concept.Value >= num
+                    || concept.Name == "beach" || concept.Name == "street"
+                    || concept.Name == "sun" || concept.Name == "sky" || concept.Name == "city")
+                    flag = true;
+            }
+            return flag;
         }
+
+
         public static bool[] ageGroups(List<Concept> res)
         {
             decimal num = Convert.ToDecimal(0.90);
