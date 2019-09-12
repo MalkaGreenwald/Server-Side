@@ -51,5 +51,12 @@ namespace WebApi.Controllers
             return Ok(Images.getRecycleBin());
         }
 
+        [Route("HasGroom")]
+        [HttpGet]
+        public IHttpActionResult HasGroom()
+        {
+            return Ok(Images.HasGroom());
+        }
+
     }
 }

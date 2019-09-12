@@ -65,7 +65,7 @@ namespace BL
             List<string> urlImage = new List<string>();
             foreach (var img in DB.images)
             {
-                if (img.isInside == true)
+                if (img.isIndoors == true)
                     urlImage.Add(img.url);
             }
             return urlImage;
@@ -75,7 +75,7 @@ namespace BL
             List<string> urlImage = new List<string>();
             foreach (var img in DB.images)
             {
-                if (img.isInside == true)
+                if (img.isIndoors == true)
                     urlImage.Add(img.url);
             }
             return urlImage;
@@ -105,20 +105,11 @@ namespace BL
             List<string> urlImage = new List<string>();
             foreach (var img in DB.images)
             {
-                if (img.hasYoung == true)
+                if (img.hasChildren == true)
                     urlImage.Add(img.url);
             }
             return urlImage;
         }
-        public static List<string> HasAdults(int Num)
-        {
-            List<string> urlImage = new List<string>();
-            foreach (var img in DB.images)
-            {
-                if (img.hasAdults == true)
-                    urlImage.Add(img.url);
-            }
-            return urlImage;
-        }
+        
     }
 }

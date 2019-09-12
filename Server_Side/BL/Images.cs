@@ -13,11 +13,10 @@ namespace BL
         public static EventEntities DB = new EventEntities();
         public static List<ImageEntity> GetImages()
         {
-            List<ImageEntity> listEntity = null;
+            List<ImageEntity> listEntity = new List<ImageEntity>();
             if (DB.images.Count() > 0)
             {
                 List<image> listImage = DB.images.Where(img => img.isInRecycleBin == null || img.isInRecycleBin == false).ToList();
-                listEntity = new List<ImageEntity>();
                 if (listImage != null)
                     foreach (var image in listImage)
                         listEntity.Add(Casting.ImageCast.GetImageEntity(image));
@@ -48,6 +47,12 @@ namespace BL
                 }
             //rec.ForEach(f => rec.Add(Casting.ImageCast.GetImageEntity(f)));
             return rec;
+        }
+        public static bool HasGroom()
+        {
+            if (DB.Grooms.FirstOrDefault(f => f.name == "groom.jpg") == null)
+                return false;
+            return true;
         }
     }
 

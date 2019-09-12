@@ -37,7 +37,7 @@ namespace BL
                     var urlStoragr = InitImages.SendToStorage(filePath);
                     Groom groom = new Groom();
                     groom.url = urlStoragr;
-                    groom.token = getFaceToken(postedFile.InputStream);
+                    groom.token = getFaceToken(urlStoragr);
                     groom.name = postedFile.FileName;
                     DB.Grooms.Add(groom);
                     DB.SaveChanges();
@@ -48,18 +48,9 @@ namespace BL
             return false;
             //return response;
         }
-        private static string getFaceToken(Stream filePath)
+        private static string getFaceToken(string url)
         {
-            string base64String;
-            using (System.Drawing.Image image = System.Drawing.Image.FromStream(filePath))
-            {
-                using (MemoryStream m = new MemoryStream())
-                {
-                    image.Save(m, image.RawFormat);
-                    byte[] imageBytes = m.ToArray();
-                    base64String = Convert.ToBase64String(imageBytes);
-                }
-            }
+            
             const string API_Key = "Yoxjj0Tu2hUPY5D5K-iQ4ZkJoGm2W2r3";
             const string API_Secret = "q97dj2QUarKmaC5NdTOdBXjC4XI2USta";
             const string BaseUrl = "https://api-us.faceplusplus.com/facepp/v3/detect";
@@ -67,7 +58,7 @@ namespace BL
             RestRequest request = new RestRequest(Method.POST);
             request.AddParameter("api_key", API_Key);
             request.AddParameter("api_secret", API_Secret);
-            request.AddParameter("image_base64", base64String);
+            request.AddParameter("image_url", url);
             request.AddParameter("return_attributes", "eyestatus");
             var response = _client.Execute(request);
             JObject results = JObject.Parse(response.Content);
