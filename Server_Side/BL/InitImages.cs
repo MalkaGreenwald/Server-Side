@@ -142,7 +142,7 @@ namespace BL
             img.numPerson = await NumPerson(filePath);
             img.isIndoors = IsIndoors(resClarifai);
             img.isOutdoors = IsOutdoors(resClarifai);
-            img.hasChildren = HasChildren(filePath);
+            img.hasChildren = HasChildren(resClarifai);
             DB.images.Add(img);
             DB.SaveChanges();
             return 1;
@@ -218,7 +218,7 @@ namespace BL
                 if (concept.Name == "interior design")
                     return true;
             }
-            return true;
+            return false;
         }
 
         public static bool IsOutdoors(List<Concept> res)
@@ -267,9 +267,15 @@ namespace BL
             }
             return whatHas;
         }
-        public static bool HasChildren(string filePath)
+        public static bool HasChildren(List<Concept> res)
         {
-            //TODO with autoML
+            decimal num = Convert.ToDecimal(0.9);
+            foreach (var concept in res)
+            {
+                if (concept.Name == "child" || concept.Name == "girl" || concept.Name == "baby" || concept.Name == "boy")
+                    if (concept.Value > num)
+                        return true;
+            }
             return false;
         }
 
