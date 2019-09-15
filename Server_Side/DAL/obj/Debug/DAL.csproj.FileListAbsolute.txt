@@ -94,3 +94,15 @@ D:\Devora\event\Event-Server\EventServer\Server_Side\DAL\obj\Debug\DAL.csproj.Co
 D:\Devora\event\Event-Server\EventServer\Server_Side\DAL\obj\Debug\DAL.csproj.CopyComplete
 D:\Devora\event\Event-Server\EventServer\Server_Side\DAL\obj\Debug\DAL.dll
 D:\Devora\event\Event-Server\EventServer\Server_Side\DAL\obj\Debug\DAL.pdb
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\DAL.dll.config
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\DAL.dll
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\DAL.pdb
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\EntityFramework.dll
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\EntityFramework.SqlServer.dll
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\EntityFramework.xml
+E:\google\EventProject\Server-Side\Server_Side\DAL\bin\Debug\EntityFramework.SqlServer.xml
+E:\google\EventProject\Server-Side\Server_Side\DAL\obj\Debug\DAL.csprojAssemblyReference.cache
+E:\google\EventProject\Server-Side\Server_Side\DAL\obj\Debug\DAL.csproj.CoreCompileInputs.cache
+E:\google\EventProject\Server-Side\Server_Side\DAL\obj\Debug\DAL.csproj.CopyComplete
+E:\google\EventProject\Server-Side\Server_Side\DAL\obj\Debug\DAL.dll
+E:\google\EventProject\Server-Side\Server_Side\DAL\obj\Debug\DAL.pdb

@@ -34,49 +34,35 @@ namespace BL
 
         public static string SendToStorage(string fileName, Stream stream)
         {
-            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"C:\My First Project-b781c7f56bda.json");
-            // upload the image storage
-            //string projectId = "wordproject-249810";
-            //char[] fu = filepath.ToCharArray();
-            //filepath.Remove(4, 1); //delete one slesh 
-            //string objectName = filepath.Split('\\').Last();
-            string bucketName = "bucketmyexample";
-            bool IsException;
+            try
+            {
+                Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"C:\My First Project-b781c7f56bda.json");
+                string bucketName = "bucketmyexample";
+                string imageURL = "https://storage.googleapis.com/bucketmyexample/" + fileName;
+                StorageClient storage = StorageClient.Create();
+                var res = storage.UploadObject(bucketName, fileName, null, stream);
+                Console.WriteLine($"Uploaded {fileName}.");
+                return imageURL;
 
-            string imageURL = "https://storage.googleapis.com/bucketmyexample/" + fileName;
-            //https://console.cloud.google.com/storage/browser/forth
-            StorageClient storage = StorageClient.Create();
-
-            //using (var f = File.OpenRead(@filepath))
-                try
-                {
-                    var res = storage.UploadObject(bucketName, fileName, null, stream);
-                    Console.WriteLine($"Uploaded {fileName}.");
-                    //imageURL = res.SelfLink;
-                    return imageURL;
-
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("your image didnot load.\n");
-                    IsException = true;
-                    throw;
-                }
+            }
+            catch (Exception)
+            {
+                return "";
+            }
         }
-        private static async Task<List<Concept>> GetResClarifai(string filePath)
+        private static async Task<List<Concept>> GetResClarifai(string fileUrl)
         {
 
             try
             {
                 var res = await clarifaiClient.PublicModels.GeneralModel
-                .Predict(new ClarifaiURLImage(filePath))
+                .Predict(new ClarifaiURLImage(fileUrl))
                 .ExecuteAsync();
                 return res.Get().Data;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-
-                throw;
+                return null;
             }
         }
         private static JObject getResultFacePP(string filePath)
@@ -90,62 +76,109 @@ namespace BL
             request.AddParameter("api_secret", API_Secret);
             request.AddParameter("image_url", filePath);
             request.AddParameter("return_attributes", "eyestatus");
-            var response = _client.Execute(request);
-
-            JObject results = JObject.Parse(response.Content);
-            return results;
-        }
-        //פונקציה זו בינתיים היא שומרת את התמונות בתיקייה כאן
-        public static async Task<List<ImageEntity>> InsertImages()
-        {
-            HttpResponseMessage response = new HttpResponseMessage();
-            var httpRequest = HttpContext.Current.Request;
-            string temp = "~/UploadFile/";
-            List<Entities.ImageEntity> l = new List<Entities.ImageEntity>();
-            string uploaded_image;
-            if (httpRequest.Files.Count > 0)
+            try
             {
-                for (var i = 0; i < httpRequest.Files.Count; i++)
+                var response = _client.Execute(request);
+                JObject results = JObject.Parse(response.Content);
+                return results;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        public static async Task<WebResult<List<ImageEntity>>> InsertImages()
+        {
+            try
+            {
+                HttpResponseMessage response = new HttpResponseMessage();
+                var httpRequest = HttpContext.Current.Request;
+                string uploaded_image;
+                List<ImageEntity> images;
+                if (httpRequest.Files.Count > 0)
                 {
-                    var postedFile = httpRequest.Files[i];
-                    if (string.Equals(postedFile.ContentType, "image/jpg", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(postedFile.ContentType, "image/jpeg", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(postedFile.ContentType, "image/pjpeg", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(postedFile.ContentType, "image/gif", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(postedFile.ContentType, "image/x-png", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(postedFile.ContentType, "image/png", StringComparison.OrdinalIgnoreCase))
+                    for (var i = 0; i < httpRequest.Files.Count; i++)
                     {
-                        var filePath = HttpContext.Current.Server.MapPath(temp + postedFile.FileName);
-                        //postedFile.SaveAs(filePath);
-                        uploaded_image = SendToStorage(postedFile.FileName, postedFile.InputStream);
-                        var x = await InitImageDetailsAsync(uploaded_image, postedFile.FileName);
-
+                        var postedFile = httpRequest.Files[i];
+                        if (string.Equals(postedFile.ContentType, "image/jpg", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(postedFile.ContentType, "image/jpeg", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(postedFile.ContentType, "image/pjpeg", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(postedFile.ContentType, "image/gif", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(postedFile.ContentType, "image/x-png", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(postedFile.ContentType, "image/png", StringComparison.OrdinalIgnoreCase))
+                        {
+                            uploaded_image = SendToStorage(postedFile.FileName, postedFile.InputStream);
+                            bool suc = await InitImageDetailsAsync(uploaded_image, postedFile.FileName);
+                            if (suc == false)
+                            {
+                                images = Images.GetImages().Value;
+                                return new WebResult<List<ImageEntity>>()
+                                {
+                                    Status = false,
+                                    Message = "failed init detailes",
+                                    Value = images
+                                };
+                            }
+                        }
                     }
                 }
-                l = Images.GetImages();
-
+                images = Images.GetImages().Value;
+                if(images==null)
+                {
+                    return new WebResult<List<ImageEntity>>()
+                    {
+                        Status = false,
+                        Message = "failed load images",
+                        Value = images
+                    };
+                }
+                return new WebResult<List<ImageEntity>>()
+                {
+                    Status = true,
+                    Message = "Ok",
+                    Value = images
+                };
             }
-
-            return l;
+            catch (Exception e)
+            {
+                return new WebResult<List<ImageEntity>>()
+                {
+                    Status = false,
+                    Message = e.Message,
+                    Value = null
+                };
+            }
         }
         //הפונקציה מוסיפה שורה לטבלת התמונות, תמונה עם כל הפרטים עליה
-        private static async Task<int> InitImageDetailsAsync(string filePath, string fileName)
+        private static async Task<bool> InitImageDetailsAsync(string fileUrl, string fileName)
         {
-            image img = new image();
-            img.url = filePath;
-            img.name = fileName;
-            var resClarifai = await GetResClarifai(filePath);
-            var resFacePP = getResultFacePP(filePath);
-            img.isBlur = IsBlur(resClarifai);
-            img.isClosedEye = IsClosedEye(resFacePP);
-            img.isGroom = IsGroom(resFacePP);
-            img.numPerson = await NumPerson(filePath);
-            img.isIndoors = IsIndoors(resClarifai);
-            img.isOutdoors = IsOutdoors(resClarifai);
-            img.hasChildren = HasChildren(resClarifai);
-            DB.images.Add(img);
-            DB.SaveChanges();
-            return 1;
+            try
+            {
+                image img = new image();
+                img.url = fileUrl;
+                img.name = fileName;
+                var resClarifai = await GetResClarifai(fileUrl);
+                var resFacePP = getResultFacePP(fileUrl);
+                if (resClarifai == null || resFacePP == null)
+                    return false;
+                img.isBlur = IsBlur(resClarifai);
+                img.isClosedEye = IsClosedEye(resFacePP);
+                img.isGroom = IsGroom(resFacePP);
+                img.numPerson = await NumPerson(fileUrl);
+                if (img.numPerson == -1)
+                    return false;
+                img.isIndoors = IsIndoors(resClarifai);
+                img.isOutdoors = IsOutdoors(resClarifai);
+                img.hasChildren = HasChildren(resClarifai);
+                DB.images.Add(img);
+                if(DB.SaveChanges()>0)
+                    return true;
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static bool IsBlur(List<Concept> res)
@@ -185,6 +218,7 @@ namespace BL
 
         private static bool IsGroom(JObject results)
         {
+            //face++
             const string API_Key = "Yoxjj0Tu2hUPY5D5K-iQ4ZkJoGm2W2r3";
             const string API_Secret = "q97dj2QUarKmaC5NdTOdBXjC4XI2USta";
             const string BaseUrl = "https://api-us.faceplusplus.com/facepp/v3/compare";
@@ -209,19 +243,15 @@ namespace BL
             return false;
         }
 
-        public static bool IsIndoors(List<Concept> res)
+        private static bool IsIndoors(List<Concept> res)
         {
             foreach (var concept in res)
-            {
-                if (concept.Name == "indoors")
+                if (concept.Name == "indoors" || concept.Name == "interior design")
                     return true;
-                if (concept.Name == "interior design")
-                    return true;
-            }
             return false;
         }
 
-        public static bool IsOutdoors(List<Concept> res)
+        private static bool IsOutdoors(List<Concept> res)
         {
             decimal num = Convert.ToDecimal(0.93);
             bool flag = false;
@@ -238,36 +268,7 @@ namespace BL
         }
 
 
-        public static bool[] ageGroups(List<Concept> res)
-        {
-            decimal num = Convert.ToDecimal(0.90);
-            bool[] whatHas = new bool[2];
-            int flag = 0;
-            foreach (var concept in res)
-            {
-                //if has children
-                if (concept.Name == "no person")
-                    if (concept.Value >= num)
-                        return whatHas;
-                if (concept.Name == "child" || concept.Name == "girl" || concept.Name == "baby" || concept.Name == "boy")
-                    if (concept.Value >= num)
-                    {
-                        whatHas[0] = true;
-                        if (++flag == 2)
-                            return whatHas;
-                    }
-
-                if (concept.Name == "man" || concept.Name == "woman" || concept.Name == "adult" || concept.Name == "people")
-                    if (concept.Value >= num)
-                    {
-                        whatHas[1] = true;
-                        if (++flag == 2)
-                            return whatHas;
-                    }
-            }
-            return whatHas;
-        }
-        public static bool HasChildren(List<Concept> res)
+        private static bool HasChildren(List<Concept> res)
         {
             decimal num = Convert.ToDecimal(0.9);
             foreach (var concept in res)
@@ -281,19 +282,18 @@ namespace BL
 
         //Clarifai פונקציה זו ניגשת ל
         //כי זה מודל לא גנרלי api צריך כאן לגשת מחדש ל
-        private static async Task<int> NumPerson(string filePath)
+        private static async Task<int> NumPerson(string fileUrl)
         {
             try
             {
                 var res = await clarifaiClient.PublicModels.FaceDetectionModel
-                .Predict(new ClarifaiURLImage(filePath))
+                .Predict(new ClarifaiURLImage(fileUrl))
                 .ExecuteAsync();
                 return res.Get().Data.Count;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-
-                throw;
+                return -1;
             }
 
         }
