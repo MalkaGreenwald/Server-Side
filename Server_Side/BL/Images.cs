@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BL.Helpers;
+//using BL.Helpers;
 using DAL;
 using Entities;
 
@@ -41,6 +42,34 @@ namespace BL
                     Value = null
                 };
             }
+        }
+
+        public static WebResult<bool> UndoDelete(string url)
+        {
+            try
+            {
+                image currentImg=DB.images.FirstOrDefault(image => image.url == url);
+                if (currentImg != null)
+                    currentImg.isInRecycleBin = false;
+                DB.SaveChanges();
+                return new WebResult<bool>()
+                {
+                    Status = true,
+                    Message = "Ok",
+                    Value = true
+                };
+            }
+            catch (Exception e)
+            {
+
+                return new WebResult<bool>()
+                {
+                    Status = false,
+                    Message = e.Message,
+                    Value = false
+                };
+            }
+            throw new NotImplementedException();
         }
 
         public static WebResult<bool> DeleteImg(string url)

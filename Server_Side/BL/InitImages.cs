@@ -123,7 +123,7 @@ namespace BL
                     }
                 }
                 images = Images.GetImages().Value;
-                if(images==null)
+                if (images == null)
                 {
                     return new WebResult<List<ImageEntity>>()
                     {
@@ -171,7 +171,7 @@ namespace BL
                 img.isOutdoors = IsOutdoors(resClarifai);
                 img.hasChildren = HasChildren(resClarifai);
                 DB.images.Add(img);
-                if(DB.SaveChanges()>0)
+                if (DB.SaveChanges() > 0)
                     return true;
                 return false;
             }

@@ -43,6 +43,12 @@ namespace WebApi.Controllers
         {
             return Ok(Images.DeleteImg(img.url));
         }
+        [Route("UndoDelete")]
+        [HttpPost]
+        public IHttpActionResult UndoDelete([FromBody]ImageEntity image)
+        {
+            return Ok(Images.UndoDelete(image.url));
+        }
 
         [Route("getRecycleBin")]
         [HttpGet]
